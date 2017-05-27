@@ -9,58 +9,48 @@ import com.google.gson.annotations.Expose;
 import javax.print.DocFlavor;
 
 /**
+ * Class of AztecEntry
  *
- * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
+ * @author Giuseppe M. Mazzeo "mazzeo@cs.ucla.edu"
+ * @author Xinxin Huang "xinxinh@gmail.com"
+ * @author Zeyu Li "zyli@cs.ucla.edu"
  */
+
 public class AztecEntry {
-    
-    String name;
-    String description;
-    transient String logo;
-    
-    String source;
 
-    transient String language;
-    
-    ArrayList<String> platforms;
+    /**
+     * General attributes of an AztecEntry
+     */
 
-    transient String sourceCodeURL;
-    
-    ArrayList<String> linkDescriptions;
-    
-    ArrayList<String> linkUrls;
-    
-    ArrayList<String> institutions;
-    
-    ArrayList<String> maintainers;
-    
-    ArrayList<String> maintainerEmails;
-    transient ArrayList<String> types;
-    
-    ArrayList<String> tags;
-    
-    ArrayList<String> domains;
-
-    transient Date[] dateCreated;
-
-    transient Date[] dateUpdated;
-    
-    ArrayList<String> owners;
-
-    ArrayList<String> authors;
-    
-    String id;
-    
-    String version;
-    
-    double[] logoHistogram;
-    transient ArrayList<String> suggestTag;
-    transient ArrayList<String> suggestTagPrefix;
-    transient String suggestName;
-    transient String suggestNamePrefix;
-    transient String acknowledgements;
-    transient String lastUpdatedMilliseconds;
-    transient String summary;
+    private String name;
+    private String description;
+    private transient String logo;
+    private String source;
+    private transient String language;
+    private ArrayList<String> platforms;
+    private transient String sourceCodeURL;
+    private ArrayList<String> linkDescriptions;
+    private ArrayList<String> linkUrls;
+    private ArrayList<String> institutions;
+    private ArrayList<String> maintainers;
+    private ArrayList<String> maintainerEmails;
+    private transient ArrayList<String> types;
+    private ArrayList<String> tags;
+    private ArrayList<String> domains;
+    private transient Date[] dateCreated;
+    private transient Date[] dateUpdated;
+    private ArrayList<String> owners;
+    private ArrayList<String> authors;
+    private String id;
+    private String version;
+    private double[] logoHistogram;
+    private transient ArrayList<String> suggestTag;
+    private transient ArrayList<String> suggestTagPrefix;
+    private transient String suggestName;
+    private transient String suggestNamePrefix;
+    private transient String acknowledgements;
+    private transient String lastUpdatedMilliseconds;
+    private transient String summary;
 
     public String getName() {
         return name;
@@ -102,6 +92,12 @@ public class AztecEntry {
         this.language = language;
     }
 
+    public ArrayList<String> getPlatforms() { return platforms; }
+
+    public void setPlatforms(ArrayList<String> platforms) {
+        this.platforms = platforms;
+    }
+
     public String getSourceCodeURL() {
         return sourceCodeURL;
     }
@@ -140,14 +136,6 @@ public class AztecEntry {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public ArrayList<String> getPlatforms() {
-        return platforms;
-    }
-
-    public void setPlatforms(ArrayList<String> platforms) {
-        this.platforms = platforms;
     }
 
     public ArrayList<String> getLinkDescriptions() {
@@ -234,17 +222,27 @@ public class AztecEntry {
         logoHistogram = new ImageUtils().histogramFromImage(logo);
     }
 
+    /**
+     * Compute and return the Histogram of the Logo image
+     *
+     * @return the computed histogram
+     */
     public double[] getLogoHistogram() {
         if (logoHistogram == null) {
             try {
                 computeLogoHistogram();
             } catch (Exception e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             }
         }
         return logoHistogram;
     }
 
+    /**
+     * Get the hashcode of an AztecEntry object.
+     *
+     * @return the hash code of an AztecEntry object
+     */
     @Override
     public int hashCode() {
         int hash = 3;
@@ -252,6 +250,12 @@ public class AztecEntry {
         return hash;
     }
 
+    /**
+     * Compare two objects and return if they are identical
+     *
+     * @param obj the object to compare with.
+     * @return <b>true</b> if identical. <b>false</b> if not.
+     */
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -261,10 +265,7 @@ public class AztecEntry {
             return false;
         }
         final AztecEntry other = (AztecEntry) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.id, other.id);
     }
 
 }
