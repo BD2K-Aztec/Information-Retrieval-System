@@ -3,13 +3,14 @@ package edu.ucla.cs.scai.aztec;
 import java.util.ArrayList;
 
 /**
+ * AztecEntry Wrapper.
  *
- * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
+ * @author Giuseppe M. Mazzeo "mazzeo@cs.ucla.edu"
  */
 public class EntryWrapper2 {
 
-    int numFound;
-    ArrayList<AztecEntry> docs;
+    private int numFound;
+    private ArrayList<AztecEntry> docs;
 
     public int getNumFound() {
         return numFound;

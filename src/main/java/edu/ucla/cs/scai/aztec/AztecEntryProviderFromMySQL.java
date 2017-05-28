@@ -14,13 +14,16 @@ import java.util.Date;
 import java.util.HashMap;
 
 /**
+ * Loading AztecEntry from MySQL database
  *
- * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
+ * @author Giuseppe M. Mazzeo "mazzeo@cs.ucla.edu"
+ * @author Xinxin Huang "xinxinh@gmail.com"
+ * @author Zeyu Li "zyli@cs.ucla.edu"
  */
 public class AztecEntryProviderFromMySQL implements AztecEntryProvider {
 
-    String url, username, password;
-    Connection conn = null;
+    private String url, username, password;
+    private Connection conn = null;
 
     static {
         try {
@@ -30,6 +33,7 @@ public class AztecEntryProviderFromMySQL implements AztecEntryProvider {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
         } catch (Exception ex) {
             // handle the error
+            ex.printStackTrace(); // TODO: Handle the Error here.
         }
     }
 
@@ -38,6 +42,12 @@ public class AztecEntryProviderFromMySQL implements AztecEntryProvider {
         conn = DriverManager.getConnection(connectionString);
     }
 
+    /**
+     * Load MySQL entries to AztecEntry's
+     *
+     * @return the loaded AztecEntry's
+     * @throws Exception sqlException
+     */
     @Override
     public ArrayList<AztecEntry> load() throws Exception {
         Statement stmt = null;
@@ -89,6 +99,7 @@ public class AztecEntryProviderFromMySQL implements AztecEntryProvider {
                 try {
                     rs.close();
                 } catch (SQLException sqlEx) {
+                    sqlEx.printStackTrace();
                 } // ignore
 
                 rs = null;
@@ -98,34 +109,22 @@ public class AztecEntryProviderFromMySQL implements AztecEntryProvider {
                 try {
                     stmt.close();
                 } catch (SQLException sqlEx) {
+                    sqlEx.printStackTrace();
                 } // ignore
 
                 stmt = null;
             }
         }
-        /*
-         StringBuilder json = new StringBuilder();
-         try (BufferedReader in = new BufferedReader(new FileReader(fileName))) {
-         String l;
-         while ((l = in.readLine()) != null) {
-         json.append(l).append(" ");
-         }
-         }
-         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();
-         EntryWrapper1 w = gson.fromJson(json.toString(), EntryWrapper1.class);
-         System.out.println("Loaded " + w.getdocs().size() + " entries");
-         return w.getdocs();
-         */
         return null;
     }
 
-    public static void main(String[] args) throws Exception {
-        String url = System.getProperty("mysql_url.path", "dev.aztec.io");
-        String port = System.getProperty("mysql_url.path", "33060");
-        String username = System.getProperty("mysql_username.path", "developer");
-        String password = System.getProperty("mysql_password.path", "ucla2015");
-        ArrayList<AztecEntry> entries = new AztecEntryProviderFromMySQL(url, port, username, password).load();
-        System.out.println(entries.size());
-    }
+//    public static void main(String[] args) throws Exception {
+//        String url = System.getProperty("mysql_url.path", "dev.aztec.io");
+//        String port = System.getProperty("mysql_url.path", "33060");
+//        String username = System.getProperty("mysql_username.path", "developer");
+//        String password = System.getProperty("mysql_password.path", "ucla2015");
+//        ArrayList<AztecEntry> entries = new AztecEntryProviderFromMySQL(url, port, username, password).load();
+//        System.out.println(entries.size());
+//    }
 
 }

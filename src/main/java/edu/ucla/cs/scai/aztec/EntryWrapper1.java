@@ -3,8 +3,9 @@ package edu.ucla.cs.scai.aztec;
 import java.util.ArrayList;
 
 /**
+ * AztecEntry Wrapper
  *
- * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
+ * @author Giuseppe M. Mazzeo "mazzeo@cs.ucla.edu"
  */
 public class EntryWrapper1 {
 
