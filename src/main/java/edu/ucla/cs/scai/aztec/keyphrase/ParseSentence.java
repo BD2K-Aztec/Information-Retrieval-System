@@ -1,8 +1,3 @@
-/**
- * Created by Xinxin on 7/29/2016.
- * This class is to parse sentence into the required format of word2vector.
- * Not used in our search engine.
- */
 package edu.ucla.cs.scai.aztec.keyphrase;
 
 import edu.ucla.cs.scai.aztec.textexpansion.TextParser;
@@ -11,23 +6,37 @@ import net.sf.extjwnl.JWNLException;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Parse sentence into the required format of Word2Vector.
+ * Not Used in Search Engine.
+ *
+ * @author Xinxin Huang "xinxinh@gmail.com" 7/29/16
+ */
 public class ParseSentence {
     private final static HashSet<String> phraseList = new HashSet<>();
+
     public void loadData(String infile) throws IOException{
-        BufferedReader reader = new BufferedReader(new FileReader(infile));
-        String line;
-        while((line = reader.readLine()) != null){
-            phraseList.add(line.trim());
+        try(BufferedReader reader = new BufferedReader(new FileReader(infile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                phraseList.add(line.trim());
+            }
+        } catch (IOException ioEx){
+            ioEx.printStackTrace();
         }
-        reader.close();
+        //reader.close();
     }
+
     public void writeData(HashSet<String> list, String outfile) throws IOException{
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outfile));
-        Iterator it = list.iterator();
-        if(it.hasNext()){
-            writer.write(it.next()+"\n");
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(outfile))) {
+            Iterator it = list.iterator();
+            if (it.hasNext()) {
+                writer.write(it.next() + "\n");
+            }
+        }catch(IOException ioEx){
+            ioEx.printStackTrace();
         }
-        writer.close();
+        //writer.close();
     }
 
     public static void main(String[] args) throws IOException, JWNLException{

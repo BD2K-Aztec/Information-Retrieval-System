@@ -9,13 +9,14 @@ import edu.ucla.cs.scai.aztec.AztecEntry;
 import java.util.ArrayList;
 
 /**
+ * The Page of the Search Results
  *
  * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
  */
 public class SearchResultPage {
 
-    ArrayList<AztecEntry> entries;
-    int totalResults;
+    private ArrayList<AztecEntry> entries;
+    private int totalResults;
 
     public SearchResultPage(ArrayList<AztecEntry> entries, int totalResults) {
         this.entries = entries;

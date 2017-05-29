@@ -1,32 +1,29 @@
-/**
- * Created by Xinxin on 7/28/2016.
- * This class is a filter to get all high quality phrases
- * Input: possible phrases and frequency, word frequency.
- * Output: high quality phrases.
- */
 package edu.ucla.cs.scai.aztec.keyphrase;
-import com.sun.xml.internal.ws.client.sei.ResponseBuilder;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 
 import java.io.*;
 import java.util.*;
 import java.lang.*;
-import java.lang.Math.*;
-import java.util.regex.*;
 
+/**
+ * A filter to get all high quality phrases
+ * Input: possible phrases and frequency, word frequency.
+ * Output: high quality phrases.
+ *
+ * @author Xinxin Huang "xinxinh@gmail.com"
+ */
 public class PhraseFilter {
-    Map<String, Integer> wordCount = new HashMap<String, Integer>();
-    Map<String, Integer> phraseCount = new HashMap<String, Integer>();
-    Map<String, Integer> phrase3Count = new HashMap<String, Integer>();
-    Map<String, Double> phraseProb = new HashMap<String, Double>();
-    LinkedList<String> phraseList3 = new LinkedList<>();
-    Double threshold2_bot = 0.025;
-    Double threshold2_up = 1.0;
-    Double min_sup2 = 20.0;
-    Double threshold3 = 0.0;
-    Double min_sup3 = 20.0;
-    Integer wordthreshold  = 4;
-    Double t_threshold = 0.0;
+    private Map<String, Integer> wordCount = new HashMap<String, Integer>();
+    private Map<String, Integer> phraseCount = new HashMap<String, Integer>();
+    private Map<String, Integer> phrase3Count = new HashMap<String, Integer>();
+    private Map<String, Double> phraseProb = new HashMap<String, Double>();
+    private LinkedList<String> phraseList3 = new LinkedList<>();
+    private Double threshold2_bot = 0.025;
+    private Double threshold2_up = 1.0;
+    private Double min_sup2 = 20.0;
+    private Double threshold3 = 0.0;
+    private Double min_sup3 = 20.0;
+    private Integer wordthreshold  = 4;
+    private Double t_threshold = 0.0;
     private final static HashSet<String> stopwords = new HashSet<>();
     static {
         String s = "a\n"
@@ -211,114 +208,138 @@ public class PhraseFilter {
         stopwords.add("");
     }
 
-    public Double[] confidence_support(String phrase){
-        Double prob = 0.0;
-        Double[] conf_sup = {0.0, 0.0};
+    public Double[] confidenceSupport(String phrase){
+//        Double prob = 0.0;
+        Double[] confSup = {0.0, 0.0};
         String words[] = phrase.split("_");
-        Integer phraseNum = phraseCount.get(phrase);
         try {
+            Integer phraseNum = phraseCount.get(phrase);
             Integer word1Num = wordCount.get(words[0]);
             //Integer word2Num = wordCount.get(words[1]);
-            prob = (double) (phraseNum) / (double)(word1Num);
-            conf_sup[0] = prob;
-            conf_sup[1] = (double)(phraseNum);
-        }catch(NullPointerException e){
+//            prob = (double) (phraseNum) / (double)(word1Num);
+            confSup[0] = (double) phraseNum / word1Num;
+            confSup[1] = (double)(phraseNum);
+        }catch(NullPointerException npEX){
+            npEX.printStackTrace();
             System.out.println("I can't find word: "+phrase);
         }
-        return conf_sup;
+        return confSup;
     }
 
-    public Double[] confidence_support_2(String phrase){
-        Double prob = 0.0;
-        Double[] conf_sup = new Double[2];
-        String words[] = phrase.split("_");
-        Integer phraseNum = phraseCount.get(phrase);
+    public Double[] confidenceSupport_2(String phrase){
+//        Double prob = 0.0;
+        Double[] confSup = new Double[2];
+        String[] words = phrase.split("_");
         try {
+            Integer phraseNum = phraseCount.get(phrase);
             //Integer word1Num = wordCount.get(words[0]);
             Integer word2Num = wordCount.get(words[1]);
-            prob = (double) (phraseNum) / (double)(word2Num);
-            conf_sup[0] = prob;
-            conf_sup[1] = (double)(phraseNum);
-        }catch(NullPointerException e){
+//            prob = (double) phraseNum / word2Num;
+            confSup[0] = (double) phraseNum / word2Num;
+            confSup[1] = (double) phraseNum;
+        }catch(NullPointerException npEX){
+            npEX.printStackTrace();
             System.out.println("I can't find word: "+phrase);
         }
-        return conf_sup;
+        return confSup;
     }
 
-    public Double[] confidence_support_3(String phrase){
-        Double prob = 0.0;
-        Double[] conf_sup = {0.0,0.0};
+    public Double[] confidenceSupport_3(String phrase){
+//        Double prob = 0.0;
+        Double[] confSup = {0.0,0.0};
         String words[] = phrase.split("_");
         Integer phraseNum = phraseCount.get(phrase);
         try {
             Integer word1Num = wordCount.get(words[0]);
             Integer word2Num = wordCount.get(words[1]);
             //Integer minNum = Math.min(word1Num,word2Num);
-            prob = (double) (phraseNum) / (double) (Math.min(word1Num, word2Num));
-            conf_sup[0] = prob;
-            conf_sup[1] = (double) (phraseNum);
-        }catch(NullPointerException e){
+//            prob = (double) (phraseNum) / (double) (Math.min(word1Num, word2Num));
+            confSup[0] = (double) phraseNum / Math.min(word1Num, word2Num);
+            confSup[1] = (double) phraseNum;
+        }catch(NullPointerException npEX){
+            npEX.printStackTrace();
             System.out.println("I can't find word: "+phrase);
         }
-        return conf_sup;
+        return confSup;
     }
 
-    public Double[] confidence_support_4(String phrase){
-        Double prob = 0.0;
-        Double[] conf_sup = {0.0,0.0};
+    public Double[] confidenceSupport_4(String phrase){
+//        Double prob = 0.0;
+        Double[] confSup = {0.0,0.0};
         String words[] = phrase.split("_");
         try {
             Integer phraseNum = phrase3Count.get(phrase);
             Integer prephraseNum = phraseCount.get(words[0]+"_"+words[1]);
             Integer sufphraseNum = phraseCount.get(words[1]+"_"+words[2]);
-            prob = (double) (phraseNum) / (double)Math.min(prephraseNum,sufphraseNum);
-            conf_sup[0] = prob;
-            conf_sup[1] = (double)(phraseNum);
-        }catch(NullPointerException e){
+//            prob = (double) (phraseNum) / (double)Math.min(prephraseNum,sufphraseNum);
+            confSup[0] = (double) phraseNum / Math.min(prephraseNum,sufphraseNum);
+            confSup[1] = (double) phraseNum;
+        }catch(NullPointerException npEX){
+            npEX.printStackTrace();
             System.out.println("I can't find word: "+phrase);
         }
-        return conf_sup;
+        return confSup;
     }
 
+    /**
+     * Compute the T-test value of a phrase.
+     *
+     * @param phrase the phrase to compute T-test value of.
+     * @return tValueSup // TODO: what are the two entries of tValueSup?
+     */
     public Double[] t_test(String phrase){
-        Double phrase_prob = 0.0;
-        Double null_hypo_mean = 0.0;
-        Double[] t_value_sup = new Double[2];
+        Double phraseProb = 0.0; // TODO: what are phraseProb and nullHypoMean?
+        Double nullHypoMean = 0.0;
+        Double[] tValueSup = {0.0, 0.0};
         String words[] = phrase.split("_");
-        Integer phraseNum = phraseCount.get(phrase);
         try{
+            Integer phraseNum = phraseCount.get(phrase);
             Integer word1Num = wordCount.get(words[0]);
             Integer word2Num = wordCount.get(words[1]);
-            phrase_prob = (double) phraseNum/ phraseCount.size();
-            null_hypo_mean = (double)(word1Num*word2Num)/(double)(wordCount.size()*wordCount.size());
-            t_value_sup[0] = Math.abs(phrase_prob-null_hypo_mean)/(Math.sqrt(phrase_prob/wordCount.size()));
-            t_value_sup[1] = (double)(phraseNum);
-        }catch(NullPointerException e){
+            phraseProb = (double) phraseNum/ phraseCount.size();
+            nullHypoMean = (double) (word1Num * word2Num) / (wordCount.size() * wordCount.size());
+            tValueSup[0] = Math.abs(phraseProb - nullHypoMean)/(Math.sqrt(phraseProb/wordCount.size()));
+            tValueSup[1] = (double) phraseNum;
+        }catch(NullPointerException npEX){
+            npEX.printStackTrace();
             System.out.println("I can't find word: "+phrase);
         }
-        return t_value_sup;
+        return tValueSup;
     }
 
-    public boolean ifStopWords(String phrase){
-        String words[] = phrase.split("_");
-        for (String word:words){
-            if (stopwords.contains(word)){
+    /**
+     * Check whether the phrase contains a stop word.
+     *
+     * @param phrase the phrase to be chekced
+     * @return <b>true</b> if phrase contains a stop word. <b>false</b> if it doesn't.
+     */
+    public boolean containsStopWords(String phrase){
+        String[] words = phrase.split("_");
+        for (String word:words)
+            if (stopwords.contains(word))
                 return true;
-            }
-        }
         return false;
     }
 
+    /**
+     * Check if any word in the phrase is completely comprised by numbers.
+     * @param phrase the phrase to be checked
+     * @return <b>true</b> if any word in the phrase is completely comprised by numbers. <b>false</b> if not.
+     */
     public boolean ifNotCharacter(String phrase){
-        String words[] = phrase.split("_");
-        for(String word:words){
-            if((word).matches("^[0-9,.]+$")){
+        String[] words = phrase.split("_");
+        for(String word:words)
+            if((word).matches("^[0-9,.]+$"))
                 return true;
-            }
-        }
         return false;
     }
 
+    /**
+     * //TODO: What does this function do?
+     *
+     * @param phrase
+     * @return
+     */
     public boolean ifSpecialCharacter(String phrase){ // if contains return true now: hope if all contains return true
         String words[] = phrase.split("_");
         for (String word:words){
@@ -329,14 +350,21 @@ public class PhraseFilter {
         return false;
     }
 
+    /**
+     * Check whether and Phrase is valid. If it get false from *containsStopWords*
+     * *ifNotCharacter* and *ifSpecialCharacter*, then it is valid.
+     * @param phrase the phrase to be checked.
+     * @return <b>true</b> if all conditions are satisfied. <b>false</b> Vise-Versa.
+     */
     public boolean validPhrase(String phrase){
         PhraseFilter pf = new PhraseFilter();
-        if(!(pf.ifNotCharacter(phrase) || pf.ifStopWords(phrase) || pf.ifSpecialCharacter(phrase))){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return !(pf.ifNotCharacter(phrase) ||  pf.containsStopWords(phrase) || pf.ifSpecialCharacter(phrase));
+//        if(!(pf.ifNotCharacter(phrase) || pf.containsStopWords(phrase) || pf.ifSpecialCharacter(phrase))){
+//            return true;
+//        }
+//        else{
+//            return false;
+//        }
     }
 
     public void selectPhrase() throws IOException, NullPointerException {
@@ -364,7 +392,7 @@ public class PhraseFilter {
             for ( String phrase : phraseCount.keySet() ) {
                 if (validPhrase(phrase)){
                     Double[] conf_sup;
-                    conf_sup = confidence_support_3(phrase);
+                    conf_sup = confidenceSupport_3(phrase);
                     //Double[] t_value_sup;
                     //t_value_sup = t_test(phrase);
                     //Double[] conf_sup_2 = confidence_support_2(phrase);
@@ -472,7 +500,7 @@ public class PhraseFilter {
         for ( String phrase : phraseList3 ) {
             if (validPhrase(phrase)) {
                 Double[] conf_sup;
-                conf_sup = confidence_support_4(phrase);
+                conf_sup = confidenceSupport_4(phrase);
                 //Double[] t_value_sup;
                 //t_value_sup = t_test(phrase);
 

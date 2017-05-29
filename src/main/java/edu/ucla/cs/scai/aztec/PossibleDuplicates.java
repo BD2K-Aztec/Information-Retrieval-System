@@ -1,13 +1,14 @@
 package edu.ucla.cs.scai.aztec;
 
 /**
+ * Output Possible Duplicates of AztecEntries.
  *
- * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
+ * @author Giuseppe M. Mazzeo "mazzeo@cs.ucla.edu"
  */
 public class PossibleDuplicates {
 
-    AztecEntry e1, e2;
-    String reason;
+    private AztecEntry e1, e2;
+    private String reason;
 
     public PossibleDuplicates(AztecEntry e1, AztecEntry e2, String reason) {
         this.e1 = e1;
@@ -41,7 +42,7 @@ public class PossibleDuplicates {
 
     @Override
     public String toString() {
-        return e1.name + " (id=" + e1.id + ") could be a duplicate of " + e2.name + " (id=" + e2.id + ") - reason: " + reason;
+        return e1.getName() + " (id=" + e1.getId()+ ") could be a duplicate of " + e2.getName()+ " (id=" + e2.getId()+ ") - reason: " + reason;
     }
 
 }
