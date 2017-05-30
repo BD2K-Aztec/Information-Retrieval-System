@@ -14,14 +14,9 @@ import java.lang.*;
 public class PhraseFilter {
     private Map<String, Integer> wordCount = new HashMap<String, Integer>();
     private Map<String, Integer> phraseCount = new HashMap<String, Integer>();
-    private Map<String, Integer> phrase3Count = new HashMap<String, Integer>();
+    private Map<String, Integer> trigramCount = new HashMap<String, Integer>();
     private Map<String, Double> phraseProb = new HashMap<String, Double>();
-    private LinkedList<String> phraseList3 = new LinkedList<>();
-    private Double threshold2_bot = 0.025;
-    private Double threshold2_up = 1.0;
-    private Double min_sup2 = 20.0;
-    private Double threshold3 = 0.0;
-    private Double min_sup3 = 20.0;
+    private LinkedList<String> trigramSet = new LinkedList<>();
     private Integer wordthreshold  = 4;
     private Double t_threshold = 0.0;
     private final static HashSet<String> stopwords = new HashSet<>();
@@ -226,6 +221,7 @@ public class PhraseFilter {
         return confSup;
     }
 
+    // TODO: What's the difference of confidence 1 to 4?
     public Double[] confidenceSupport_2(String phrase){
 //        Double prob = 0.0;
         Double[] confSup = new Double[2];
@@ -268,7 +264,7 @@ public class PhraseFilter {
         Double[] confSup = {0.0,0.0};
         String words[] = phrase.split("_");
         try {
-            Integer phraseNum = phrase3Count.get(phrase);
+            Integer phraseNum = trigramCount.get(phrase);
             Integer prephraseNum = phraseCount.get(words[0]+"_"+words[1]);
             Integer sufphraseNum = phraseCount.get(words[1]+"_"+words[2]);
 //            prob = (double) (phraseNum) / (double)Math.min(prephraseNum,sufphraseNum);
@@ -340,7 +336,7 @@ public class PhraseFilter {
      * @param phrase
      * @return
      */
-    public boolean ifSpecialCharacter(String phrase){ // if contains return true now: hope if all contains return true
+    public boolean hasSpecialChar(String phrase){ // if contains return true now: hope if all contains return true
         String words[] = phrase.split("_");
         for (String word:words){
             if(word.replaceAll("[^A-Za-z0-9]"," ").trim().isEmpty()){
@@ -352,14 +348,14 @@ public class PhraseFilter {
 
     /**
      * Check whether and Phrase is valid. If it get false from *containsStopWords*
-     * *ifNotCharacter* and *ifSpecialCharacter*, then it is valid.
+     * *ifNotCharacter* and *hasSpecialChar*, then it is valid.
      * @param phrase the phrase to be checked.
      * @return <b>true</b> if all conditions are satisfied. <b>false</b> Vise-Versa.
      */
     public boolean validPhrase(String phrase){
         PhraseFilter pf = new PhraseFilter();
-        return !(pf.ifNotCharacter(phrase) ||  pf.containsStopWords(phrase) || pf.ifSpecialCharacter(phrase));
-//        if(!(pf.ifNotCharacter(phrase) || pf.containsStopWords(phrase) || pf.ifSpecialCharacter(phrase))){
+        return !(pf.ifNotCharacter(phrase) ||  pf.containsStopWords(phrase) || pf.hasSpecialChar(phrase));
+//        if(!(pf.ifNotCharacter(phrase) || pf.containsStopWords(phrase) || pf.hasSpecialChar(phrase))){
 //            return true;
 //        }
 //        else{
@@ -367,156 +363,172 @@ public class PhraseFilter {
 //        }
     }
 
+    /**
+     * Fill in `wordCount` and `phraseCount`, get distinct phrase set, output valid and invalid phrases.
+     * @throws IOException When cannot find file or cannot create file.
+     * @throws NullPointerException When cannot find the entry in set.
+     */
     public void selectPhrase() throws IOException, NullPointerException {
-        String infile = "src/main/data/wordFrequency";
-        String infile2 = "src/main/data/phrase2Frequency";
-        Properties properties = new Properties();
-        try{
-            properties.load(new FileInputStream(infile));
+        Double thold2Low = 0.025;
+        Double thold2High = 1.0;
+        Double minSup2 = 20.0;
 
-            for (String key : properties.stringPropertyNames()) {
+        // TODO: Cannot find these files
+        String wordFreqFile = "src/main/data/wordFrequency";
+        String phraseFreqFile = "src/main/data/phrase2Frequency";
+        Properties properties = new Properties(); // TODO: always using the `properties`, can be simplifed
+
+        // Loading wordCount and phraseCount
+        try{
+            properties.load(new FileInputStream(wordFreqFile));
+            for (String key : properties.stringPropertyNames())
                 wordCount.put(key, Integer.valueOf(properties.get(key).toString()));
-            }
             properties.clear();
-            properties.load(new FileInputStream(infile2));
-            for (String key : properties.stringPropertyNames()) {
+
+            properties.load(new FileInputStream(phraseFreqFile));
+            for (String key : properties.stringPropertyNames())
                 phraseCount.put(key, Integer.valueOf(properties.get(key).toString()));
-            }
+            properties.clear();
         }catch(NullPointerException | IOException e){
+            e.printStackTrace();
             System.out.println("I can't read the file");
         }
+
+        // Detecting invalid phrases
         Integer linecount = 0;
-        try{
-            PrintWriter outString = new PrintWriter("src/main/data/invalid_phrase.txt");
-            PrintWriter outPhrase = new PrintWriter("src/main/data/phrase2List_20.txt");
+        try(PrintWriter outInvalidPhrase = new PrintWriter("src/main/data/invalid_phrase.txt");
+            PrintWriter outPhrase = new PrintWriter("src/main/data/phrase2List_20.txt")){
+            // TODO: Cannot find these files either
             for ( String phrase : phraseCount.keySet() ) {
                 if (validPhrase(phrase)){
-                    Double[] conf_sup;
-                    conf_sup = confidenceSupport_3(phrase);
-                    //Double[] t_value_sup;
-                    //t_value_sup = t_test(phrase);
-                    //Double[] conf_sup_2 = confidence_support_2(phrase);
-                    //if ((conf_sup[0] > threshold || conf_sup_2[0] > threshold) && conf_sup[1] > min_sup) {
-                    if(conf_sup[0]>= threshold2_bot &&conf_sup[0]< threshold2_up && conf_sup[1]>= min_sup2){
-                        //phraseProb.put(phrase, Math.max(conf_sup[0],conf_sup_2[0]));
-                        phraseProb.put(phrase,conf_sup[0]);
+                    Double[] confSup = confidenceSupport_3(phrase);
+                    if(confSup[0] >= thold2Low
+                       && confSup[0] < thold2High
+                       && confSup[1] >= minSup2){
+                        phraseProb.put(phrase, confSup[0]);
                         outPhrase.println(phrase);
                     }
-//                    if(t_value_sup[0]> threshold && t_value_sup[1]> min_sup){
-//                        //phraseProb.put(phrase, Math.max(conf_sup[0],conf_sup_2[0]));
-//                        phraseProb.put(phrase,t_value_sup[0]);
-//                        outPhrase.println(phrase);
-//                    }
                 }
                 else{
-                    outString.println(phrase);
+                    outInvalidPhrase.println(phrase);
                 }
-//                linecount+=1;
-//                if ((linecount%3000) == 0 ){
-//                    System.out.println(linecount/3000);
-//                }
             }
             System.out.println(linecount);
-            System.out.println(phraseProb.size() + " distinct phrases:");     //Prints the Number of Distinct words found in the files read
-            //System.out.println(wordCount);
-            outString.close();
-            outPhrase.close();
-
+            //Prints the Number of Distinct words found in the files read
+            System.out.println(phraseProb.size() + " distinct phrases:");
         }catch(IOException e) {
+            e.printStackTrace();
             System.out.println("I can't write test file");
         }
-        properties = new Properties();
 
+        // Output all the valid phrases
         for (Map.Entry<String,Double> entry : phraseProb.entrySet()) {
             properties.put(entry.getKey(), Double.toString(entry.getValue()));
         }
-        try{
-            File fileOne=new File("src/main/data/phraseProbability_sup_20_c_min_0.025_max_1");
-            FileOutputStream fos=new FileOutputStream(fileOne);
+
+        // TODO: change variable name of this FileOutputStream
+        try(FileOutputStream fos = new FileOutputStream(new File("src/main/data/phraseProbability_sup_20_c_min_0.025_max_1"))){
             properties.store(fos, null);
-            fos.close();
         }catch (NullPointerException | IOException e) {
+            e.printStackTrace();
             System.out.println("I can't write the file:" + e);
         }
         properties.clear();
+
+        // Output all the phraseProbabilities
         for (String key : phraseProb.keySet()) {
             properties.put(key, Double.toString(phraseCount.get(key)));
         }
-        try{
-            File fileOne=new File("src/main/data/phraseFrequency_sup_20_c_min_0.025_max_1");
-            FileOutputStream fos=new FileOutputStream(fileOne);
+        try(FileOutputStream fos=new FileOutputStream(new File("src/main/data/phraseFrequency_sup_20_c_min_0.025_max_1"))){
             properties.store(fos, null);
-            fos.close();
         }catch (NullPointerException | IOException e) {
+            e.printStackTrace();
             System.out.println("I can't write the file:" + e);
         }
     }
+
+
+    /**
+     * Merge all the bigrams to get trigrams
+     *
+     * @throws IOException when cannot open files
+     */
     public void mergePhrase() throws IOException{
+        Map<String,HashSet<String>> bigramSet = new HashMap<>();
+
         String infile = "src/main/data/phrase2List_20.txt";
         BufferedReader br = new BufferedReader(new FileReader(infile));
-        Map<String,HashSet<String>> phraseList2 = new HashMap<>();
+
+        // Load all bigrams into bigramSet
         String line;
-        String phrase3;
-        HashSet<String> set = new HashSet<>();
         while ((line = br.readLine()) != null) {
             String[] words = line.split("_");
-            set = phraseList2.get(words[0]);
-            if(set == null){
+            HashSet<String> set = bigramSet.get(words[0]);
+            if(set == null)
                 set = new HashSet<>();
-            }
             set.add(words[1]);
-            phraseList2.put(words[0],set);
+            bigramSet.put(words[0], set);
         }
-        HashSet<String> keySet = new HashSet<String>(phraseList2.keySet());
+
+        // Merge bigrams to get trigrams
+        // Key + Word + RightWord make a new trigram.
+        HashSet<String> keySet = new HashSet<String>(bigramSet.keySet());
         for(String key: keySet){
-            set = phraseList2.get(key);
+            HashSet<String> set = bigramSet.get(key);
             for(String word:set){
                 if(keySet.contains(word)){
-                    for (String rightword: phraseList2.get(word)) {
-                        phrase3 = key + "_" + word + "_"+ rightword;
-                        phraseList3.add(phrase3);
+                    for (String rightWord: bigramSet.get(word)) {
+                        String tmpTrigram = key + "_" + word + "_"+ rightWord;
+                        trigramSet.add(tmpTrigram);
                     }
                 }
             }
         }
     }
 
+    /**
+     * Select and output all trigrams.
+     *
+     * @throws IOException when cannot open files
+     */
     public void selectPhrase3() throws IOException{
+        Double thold3 = 0.0;
+        Double minSup = 20.0;
         String infile = "src/main/data/phrase3Frequency";
-        String outfile = "src/main/data/phrase3List_20";
-        PrintWriter outString = new PrintWriter("src/main/data/invalid_phrase_3.txt");
-        PrintWriter outPhrase = new PrintWriter(outfile);
+        PrintWriter outInvalidTrigram = new PrintWriter("src/main/data/invalid_phrase_3.txt");
+        PrintWriter outTrigram = new PrintWriter("src/main/data/phrase3List_20");
         Properties properties = new Properties();
         try{
             properties.load(new FileInputStream(infile));
 
             for (String key : properties.stringPropertyNames()) {
-                phrase3Count.put(key, Integer.valueOf(properties.get(key).toString()));
+                trigramCount.put(key, Integer.valueOf(properties.get(key).toString()));
             }
             properties.clear();
         }catch(NullPointerException | IOException e){
+            e.printStackTrace();
             System.out.println("I can't read the file");
         }
-        for ( String phrase : phraseList3 ) {
+        for ( String phrase : trigramSet) {
             if (validPhrase(phrase)) {
-                Double[] conf_sup;
-                conf_sup = confidenceSupport_4(phrase);
-                //Double[] t_value_sup;
-                //t_value_sup = t_test(phrase);
-
-                //if ((conf_sup[0] > threshold || conf_sup_2[0] > threshold) && conf_sup[1] > min_sup) {
-                if(conf_sup[0]> threshold3 && conf_sup[1]> min_sup3){
-                    phraseProb.put(phrase,conf_sup[0]);
-                    outPhrase.println(phrase+" "+ Double.toString(conf_sup[1]));
+                Double[] confSup = confidenceSupport_4(phrase);
+                if(confSup[0]> thold3 && confSup[1]> minSup){
+                    phraseProb.put(phrase, confSup[0]);
+                    outTrigram.println(phrase + " " + Double.toString(confSup[1]));
                 }
-
             } else {
-                outString.println(phrase);
+                outInvalidTrigram.println(phrase);
             }
         }
-        outPhrase.close();
+        outTrigram.close();
     }
 
+    /**
+     * Output all Phrases to files
+     *
+     * @throws IOException
+     */
+    // TODO: Lacking a try-catch statement
     public void writePhraseList() throws IOException{
         String outfile = "src/main/data/phraseList_20.txt";
         PrintWriter outString = new PrintWriter(outfile);
@@ -525,6 +537,12 @@ public class PhraseFilter {
         }
         outString.close();
     }
+
+    /**
+     * Write properties to files
+     *
+     * @throws IOException
+     */
     public void writeProperties() throws IOException{
         Properties properties = new Properties();
         for (Map.Entry<String,Double> entry : phraseProb.entrySet()) {
@@ -536,6 +554,7 @@ public class PhraseFilter {
             properties.store(fos, null);
             fos.close();
         }catch (NullPointerException | IOException e) {
+            e.printStackTrace();
             System.out.println("I can't write the file:" + e);
         }
     }
