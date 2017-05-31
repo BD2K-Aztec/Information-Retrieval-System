@@ -1,28 +1,24 @@
 package edu.ucla.cs.scai.aztec.textexpansion;
 
-import com.sun.javaws.exceptions.JNLParseException;
 import edu.ucla.cs.scai.aztec.keyphrase.Tokenizer;
-//import edu.ucla.cs.scai.aztec.similarity.Tokenizer;
-import edu.ucla.cs.scai.aztec.utils.StringUtils;
 import net.sf.extjwnl.JWNLException;
-import net.sf.extjwnl.data.list.Node;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.Map.Entry;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.regex.Pattern;
 
 /**
- * Created by Xinxin on 8/3/2016.
+ * Class for Text Parser.
+ *
+ * @author Xinxin Huang "xinxinh@gmail.com" (8/3/2016)
+ * @author Zeyu Li "zyli@cs.ucla.edu"
  */
 public class TextParser{
-    private final static HashSet<String> phraselist = new HashSet<>();
-    private final static HashSet<String> stopwords = new HashSet<>();
-    private static Integer max_phrase = 5;
+    private final static HashSet<String> phraseList = new HashSet<>();
+    private final static HashSet<String> stopWords = new HashSet<>();
+    private static Integer maxPhrase = 5;
     static {
         String s = "a\n"
                 + "about\n"
@@ -202,24 +198,44 @@ public class TextParser{
                 + "yours\n"
                 + "yourself\n"
                 + "yourselves\n'";
-        stopwords.addAll(Arrays.asList(s.split("\\\n")));
-        stopwords.add("");
+        stopWords.addAll(Arrays.asList(s.split("\\\n")));
+        stopWords.add("");
     }
 //    public TextParser() throws JWNLException, FileNotFoundException{
 //        Tokenizer token = new Tokenizer();
 //    }
-    public void loadData(String infile) throws IOException{
-        BufferedReader reader = new BufferedReader(new FileReader(infile));
-        String line;
-        while((line = reader.readLine()) != null){
-            phraselist.add(line.trim());
-        }
-        reader.close();
-    }
+
+    /**
+     * Constructor.
+     *
+     * @throws IOException
+     */
     public TextParser() throws IOException{
         this.loadData("src/main/data/phraseList_Chi_newdata");
     }
-    public LinkedList<String> queryParser_old(String text) throws JWNLException, IOException{
+
+    /**
+     * Load file to phraseList.
+     *
+     * @param inFile the filename from which to load data.
+     * @throws IOException when cannot find file.
+     */
+    // TODO: Maybe change it to try-catch statement someday.
+    public void loadData(String inFile) throws IOException{
+        BufferedReader reader = new BufferedReader(new FileReader(inFile));
+        String line;
+        while((line = reader.readLine()) != null){
+            phraseList.add(line.trim());
+        }
+        reader.close();
+    }
+
+
+    /**
+     * queryParser, old version?
+     * Leave it private first.
+     */
+    private LinkedList<String> queryParser_old(String text) throws JWNLException, IOException{
         LinkedList<String> unitList = new LinkedList<>();
         //String infile = "src/main/data/phraseList_20.txt";
         //TextParser parser = new TextParser();
@@ -232,13 +248,13 @@ public class TextParser{
             Integer i = 0;
             while(i < final_idx) {
                 phrase = words.get(i)+"_"+words.get(i+1)+"_"+words.get(i+2); // first check three words phrase
-                if(phraselist.contains(phrase)){
+                if(phraseList.contains(phrase)){
                     unitList.add((phrase));
                     i += 3; //skip all following words contained in phrase
                 }
                 else{
                     phrase = words.get(i)+"_"+words.get(i+1);
-                    if (phraselist.contains(phrase)){
+                    if (phraseList.contains(phrase)){
                         unitList.add(phrase);
                         i += 2;
                     }
@@ -250,7 +266,7 @@ public class TextParser{
             }
             while(i<final_idx+1) { // check the last few words.
                 phrase = words.get(i) + "_" + words.get(i + 1);
-                if (phraselist.contains(phrase)) {
+                if (phraseList.contains(phrase)) {
                     unitList.add(phrase);
                     i += 2;
                 } else { // if not phrase, add as two separate words
@@ -269,60 +285,61 @@ public class TextParser{
         }
         return  unitList;
     }
+
+
+    /**
+     * Query Parser.
+     * @param text
+     * @return
+     * @throws JWNLException
+     * @throws IOException
+     */
+    // TODO: What the thisWords and nextWords?
     public LinkedList<String> queryParser(String text) throws JWNLException, IOException{
+        Integer windowSize = maxPhrase;
         LinkedList<String> unitList = new LinkedList<>();
-        //String infile = "src/main/data/phraseList_20.txt";
-        //TextParser parser = new TextParser();
-        Tokenizer token = new Tokenizer();
-        //this.loadData(infile);
-        LinkedList<String> words = token.tokenize(text);
-        //String[] words = text.split(" ");
-        ArrayList<String> next_words = new ArrayList<>();
-        String phrase;
-        Integer win_size = max_phrase;
-        //Integer this_length = words.size();
-        ArrayList<String> this_words = new ArrayList<>();
-        for(String w:words){
-            this_words.add(w);
-        }
-        while(win_size>=1){
-            Integer start_pos = 0;
-            Integer end_pos = start_pos+win_size-1;
-            while(end_pos<this_words.size()){
-                List<String>subphrase = this_words.subList(start_pos, end_pos+1);
-                String sub_phrase = String.join("_",subphrase);
-                if(phraselist.contains(sub_phrase)){
-                    next_words.add(sub_phrase);
-                    start_pos = end_pos+1;
+        Tokenizer tokenizer = new Tokenizer();
+        LinkedList<String> words = tokenizer.tokenize(text);
+        ArrayList<String> nextWords = new ArrayList<>();
+        ArrayList<String> thisWords = new ArrayList<>();
+        thisWords.addAll(words);
+
+        for( ; windowSize >= 1; windowSize--){
+            Integer startPos = 0;
+            Integer endPos = startPos + windowSize -1;
+            while(endPos < thisWords.size()){
+                List<String> subPhraseList = thisWords.subList(startPos, endPos +1);
+                String subPhrase = String.join("_", subPhraseList);
+                if(phraseList.contains(subPhrase)){
+                    nextWords.add(subPhrase);
+                    startPos = endPos +1;
                 }
                 else{
-                    next_words.add(this_words.get(start_pos));
-                    start_pos++;
+                    nextWords.add(thisWords.get(startPos));
+                    startPos++;
                 }
-                end_pos = start_pos+win_size-1;
+                endPos = startPos + windowSize -1;
             }
-            if(start_pos<this_words.size()) {
-                next_words.addAll(this_words.subList(start_pos, this_words.size()));
+            if(startPos < thisWords.size()) {
+                nextWords.addAll(thisWords.subList(startPos, thisWords.size()));
             }
-            this_words = new ArrayList<>(next_words);
-            next_words = new ArrayList<>();
-            win_size--;
+            thisWords = new ArrayList<>(nextWords);
+            nextWords = new ArrayList<>();
+//            windowSize--;
         }
-        for(String w:this_words){
-            unitList.add(w);
-        }
+        unitList.addAll(thisWords);
 //        if(words.size()>1) {
 //            Integer final_idx = words.size() - 2;
 //            Integer i = 0;
 //            while(i < final_idx) {
 //                phrase = words.get(i)+"_"+words.get(i+1)+"_"+words.get(i+2); // first check three words phrase
-//                if(phraselist.contains(phrase)){
+//                if(phraseList.contains(phrase)){
 //                    unitList.add((phrase));
 //                    i += 3; //skip all following words contained in phrase
 //                }
 //                else{
 //                    phrase = words.get(i)+"_"+words.get(i+1);
-//                    if (phraselist.contains(phrase)){
+//                    if (phraseList.contains(phrase)){
 //                        unitList.add(phrase);
 //                        i += 2;
 //                    }
@@ -334,7 +351,7 @@ public class TextParser{
 //            }
 //            while(i<final_idx+1) { // check the last few words.
 //                phrase = words.get(i) + "_" + words.get(i + 1);
-//                if (phraselist.contains(phrase)) {
+//                if (phraseList.contains(phrase)) {
 //                    unitList.add(phrase);
 //                    i += 2;
 //                } else { // if not phrase, add as two separate words
@@ -354,15 +371,19 @@ public class TextParser{
         return  unitList;
     }
 
+    /**
+     * Remove all the punctuation units and stop words.
+     * @param doc the Doc to work on.
+     * @return the list of strings that has the punctuations and stop words removed.
+     * @throws JWNLException
+     * @throws IOException
+     */
     public LinkedList<String> docParser(String doc) throws JWNLException, IOException {
         LinkedList<String> unitList = new LinkedList<>();
-        LinkedList<String> tmpunitList = new LinkedList<>();
-        tmpunitList = this.queryParser(doc);
-        for (String unit:tmpunitList){ // remove single punctuation unit
-            if((!(Pattern.matches("(?!-_)\\p{Punct}", unit))) && (!stopwords.contains(unit))){
+        LinkedList<String> tmpUnitList = this.queryParser(doc);
+        for (String unit: tmpUnitList) // remove single punctuation unit
+            if((!(Pattern.matches("(?!-_)\\p{Punct}", unit))) && (!stopWords.contains(unit)))
                 unitList.add(unit);
-            }
-        }
         return  unitList;
     }
     public static void main(String[] args) throws JWNLException, IOException{

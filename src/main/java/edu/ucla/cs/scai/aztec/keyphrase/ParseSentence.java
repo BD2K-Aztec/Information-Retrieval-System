@@ -11,10 +11,17 @@ import java.util.*;
  * Not Used in Search Engine.
  *
  * @author Xinxin Huang "xinxinh@gmail.com" 7/29/16
+ * @author Zeyu Li "zyli@cs.ucla.edu" 5/30/2017
  */
 public class ParseSentence {
     private final static HashSet<String> phraseList = new HashSet<>();
 
+    /**
+     * From infine load data into phraseList, line by line after trim.
+     *
+     * @param infile The filename from which we load data.
+     * @throws IOException when cannot find the file
+     */
     public void loadData(String infile) throws IOException{
         try(BufferedReader reader = new BufferedReader(new FileReader(infile))) {
             String line;
@@ -24,9 +31,15 @@ public class ParseSentence {
         } catch (IOException ioEx){
             ioEx.printStackTrace();
         }
-        //reader.close();
     }
 
+    /**
+     * writeData from "list" to the file "outfile"
+     *
+     * @param list The list strings to output.
+     * @param outfile The output filename.
+     * @throws IOException when cannot create the file
+     */
     public void writeData(HashSet<String> list, String outfile) throws IOException{
         try(BufferedWriter writer = new BufferedWriter(new FileWriter(outfile))) {
             Iterator it = list.iterator();

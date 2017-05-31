@@ -1,23 +1,25 @@
 package edu.ucla.cs.scai.aztec.keyphrase;
 
-/**
- * Created by Xinxin on 8/1/2016.
- */
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
-import edu.stanford.nlp.util.PropertiesUtils;
 import net.sf.extjwnl.JWNLException;
 
 import java.io.FileNotFoundException;
 import java.util.*;
 
+/**
+ * Tokenize the sentences so that can fit into StanfordCoreNLP packages.
+ *
+ * @author Xinxin Huang "xinxinh@gmail.com" on 8/1/2016.
+ */
+
 // need to map all the words to its lemma
 public class Tokenizer {
-    StanfordCoreNLP pipelineTokens;
-    private final static HashSet<String> stopwords = new HashSet<>();
+    private StanfordCoreNLP pipelineTokens;
+    private final static HashSet<String> stopWords = new HashSet<>();
     static {
         String s = "a\n"
                 + "about\n"
@@ -192,11 +194,17 @@ public class Tokenizer {
                 + "yours\n"
                 + "yourself\n"
                 + "yourselves\n'";
-        stopwords.addAll(Arrays.asList(s.split("\\\n")));
-        stopwords.add("");
+        stopWords.addAll(Arrays.asList(s.split("\\\n")));
+        stopWords.add("");
     }
 
 
+    /**
+     * Constructor Method. Generate a StanfordCoreNLP Class.
+     *
+     * @throws JWNLException
+     * @throws FileNotFoundException
+     */
     public Tokenizer() throws JWNLException, FileNotFoundException {
         Properties propToken = new Properties();
         propToken.put("annotators","tokenize,ssplit,pos,lemma");
@@ -211,26 +219,40 @@ public class Tokenizer {
 //                        "tokenize.language", "en"));
     }
 
+    /**
+     * Tokenize a sentence into a word list.
+     *
+     * @param text The text need to be tokenized.
+     * @return The output of the tokenized word list.
+     */
     public LinkedList<String> tokenize(String text) {
-        text = text.toLowerCase();
-        text = text.replaceAll("/"," ");
-        text = text.replaceAll("_","-");
-        LinkedList<String> wordList = new LinkedList<String>();
+        LinkedList<String> wordList = new LinkedList<>();
         if (text != null) {
+            text = text.toLowerCase(); // Convert to lower case
+            text = text.replaceAll("/"," "); // Replace all '/' by ' '
+            text = text.replaceAll("_","-"); // Replace all '_' by '-'
+            // TODO: what are 'qa' and 'qss'?
             Annotation qaTokens = new Annotation(text);
             pipelineTokens.annotate(qaTokens);
             List<CoreMap> qssTokens = qaTokens.get(CoreAnnotations.SentencesAnnotation.class);
             for (CoreMap sentenceTokens : qssTokens) {
                 ArrayList<CoreLabel> tokens = (ArrayList<CoreLabel>) sentenceTokens.get(CoreAnnotations.TokensAnnotation.class);
                 for (CoreLabel t : tokens) {
-                    String lemma = t.lemma();
-                    wordList.add(lemma);
+                    wordList.add(t.lemma());
                 }
             }
         }
         return wordList;
     }
-    public LinkedList<LinkedList<String>> tokenizeBySentence(String text, LinkedList<int[]> boundaries) {
+
+    /**
+     * First make this function private because it is unused.
+     *
+     * @param text
+     * @param boundaries
+     * @return
+     */
+    private LinkedList<LinkedList<String>> tokenizeBySentence(String text, LinkedList<int[]> boundaries) {
         LinkedList<LinkedList<String>> res = new LinkedList<>();
         if (text != null) {
             Annotation qaTokens = new Annotation(text);
@@ -250,7 +272,7 @@ public class Tokenizer {
                     last = t;
                     String lemma = t.lemma();
                     String pos = t.tag();
-                    if (!stopwords.contains(lemma)) {
+                    if (!stopWords.contains(lemma)) {
                         sentence.add(lemma);
                     }
                 }
