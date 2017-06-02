@@ -14,7 +14,9 @@ import com.opencsv.CSVReader;
 import sun.awt.image.ImageWatched;
 
 /**
- * Created by Xinxin on 9/27/2016.
+ * MetshTreeHierachy Class
+ *
+ * @author Xinxin Huang "xinxinh@gmail.com" on 9/27/2016.
  */
 public class MeshTreeHierarchy {
     public static HashMap<String, LinkedList<TreeNode>> Index = new HashMap<>(); // term, node
@@ -22,9 +24,19 @@ public class MeshTreeHierarchy {
     Tokenizer tk;
     public static HashSet<String> vocabulary = new HashSet<>(); // store the vocabulary
 
+    /**
+     * Constructor Method
+     * @throws JWNLException
+     * @throws FileNotFoundException
+     */
     public MeshTreeHierarchy() throws JWNLException, FileNotFoundException{
         tk = new Tokenizer();
     }
+
+    /**
+     * Load vocabulary from files
+     * @throws Exception when cannot open files
+     */
     public void loadvocab() throws Exception{
         String fvocab = "/home/xinxin/AztecData/Vocabulary_w2v.txt";
         BufferedReader br = new BufferedReader(new FileReader(fvocab));
@@ -33,6 +45,12 @@ public class MeshTreeHierarchy {
             vocabulary.add(line.trim());
         }
     }
+
+    /**
+     * Build the Hierarchy Mesh Tree.
+     * @param infile the input file name
+     * @throws IOException
+     */
     public void BuildHierarchy(String infile) throws IOException{
         PrintWriter pt = new PrintWriter(new FileOutputStream("/home/xinxin/AztecData/bugdata.txt"));
         PrintWriter pt2 = new PrintWriter(new FileOutputStream("/home/xinxin/AztecData/repeatdata.txt"));
@@ -112,6 +130,13 @@ public class MeshTreeHierarchy {
         pt.close();
         pt2.close();
     }
+
+    /**
+     * Load table to hierarch table.
+     * @param infile the filename from which to load data.
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void readTable(String infile)throws IOException, ClassNotFoundException{
         System.out.println("Load hierarch on keywords path system property: " + System.getProperty("hierarch.path"));
         String tfidtPath = System.getProperty("hierarch.path", infile);
@@ -120,6 +145,13 @@ public class MeshTreeHierarchy {
         generalTable= (HashMap<String, TreeNode>) ois.readObject();
         ois.close();
     }
+
+
+    /**
+     * Print table to files.
+     * @param outfile The target output file.
+     * @throws IOException
+     */
     public void writeTable(String outfile) throws IOException{
         ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(outfile));
         out.writeObject(Index);
@@ -127,6 +159,11 @@ public class MeshTreeHierarchy {
         out.close();
     }
 
+    /**
+     * Get the Hypernym of a specific term
+     * @param term the word to get hypernym of.
+     * @return all the hypernym of term.
+     */
     public LinkedList<RankedString> getHypernym(String term){
         LinkedList<TreeNode> tn_now_list = Index.get(term);
         TreeNode upper;
@@ -148,6 +185,12 @@ public class MeshTreeHierarchy {
         }
         return hyper;
     }
+
+    /**
+     * Get the Hyponym of a specific term
+     * @param term the word to get hyponym of.
+     * @return all the hyponym of term.
+     */
     public LinkedList<RankedString> getHyponym(String term){ // using BFS to easily get the distance of the words.
         LinkedList<TreeNode> tn_now_list = Index.get(term);
         LinkedList<RankedString> hypo = new LinkedList<>();
@@ -178,6 +221,13 @@ public class MeshTreeHierarchy {
         }
         return hypo;
     }
+
+
+    /**
+     * Get the Hypo pairs in vocabulary
+     *
+     * @throws Exception
+     */
     public void getHypoPairinVocab() throws Exception{
         HashMap<String,Set<String>> hypomap = new HashMap<>();
         String outfile = "/home/xinxin/AztecData/hypo.txt";
@@ -208,6 +258,13 @@ public class MeshTreeHierarchy {
         System.out.println(success);
         pt.close();
     }
+
+
+    /**
+     * Get the Hypernym pairs in vocabulary
+     *
+     * @throws Exception
+     */
     public void getHyperPairinVocab() throws Exception{
         HashMap<String,Set<String>> hypermap = new HashMap<>();
         String outfile = "/home/xinxin/AztecData/hyper2.txt"; // hyper2.txt the distance between two terms in graph is 2

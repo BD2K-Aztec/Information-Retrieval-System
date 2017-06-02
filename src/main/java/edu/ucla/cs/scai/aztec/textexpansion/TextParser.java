@@ -233,68 +233,68 @@ public class TextParser{
 
     /**
      * queryParser, old version?
+     *
      * Leave it private first.
      */
-    private LinkedList<String> queryParser_old(String text) throws JWNLException, IOException{
-        LinkedList<String> unitList = new LinkedList<>();
-        //String infile = "src/main/data/phraseList_20.txt";
-        //TextParser parser = new TextParser();
-        Tokenizer token = new Tokenizer();
-        //this.loadData(infile);
-        LinkedList<String> words = token.tokenize(text);
-        String phrase;
-        if(words.size()>1) {
-            Integer final_idx = words.size() - 2;
-            Integer i = 0;
-            while(i < final_idx) {
-                phrase = words.get(i)+"_"+words.get(i+1)+"_"+words.get(i+2); // first check three words phrase
-                if(phraseList.contains(phrase)){
-                    unitList.add((phrase));
-                    i += 3; //skip all following words contained in phrase
-                }
-                else{
-                    phrase = words.get(i)+"_"+words.get(i+1);
-                    if (phraseList.contains(phrase)){
-                        unitList.add(phrase);
-                        i += 2;
-                    }
-                    else{
-                        unitList.add(words.get(i));
-                        i++;
-                    }
-                }
-            }
-            while(i<final_idx+1) { // check the last few words.
-                phrase = words.get(i) + "_" + words.get(i + 1);
-                if (phraseList.contains(phrase)) {
-                    unitList.add(phrase);
-                    i += 2;
-                } else { // if not phrase, add as two separate words
-                    unitList.add(words.get(i));
-                    i++;
-                }
-            }
-            while(i<final_idx+2){
-                unitList.add(words.get(i));
-                i++;
-            }
-
-        }
-        else{
-            unitList.add(words.get(0));
-        }
-        return  unitList;
-    }
+//    private LinkedList<String> queryParser_old(String text) throws JWNLException, IOException{
+//        LinkedList<String> unitList = new LinkedList<>();
+//        //String infile = "src/main/data/phraseList_20.txt";
+//        //TextParser parser = new TextParser();
+//        Tokenizer token = new Tokenizer();
+//        //this.loadData(infile);
+//        LinkedList<String> words = token.tokenize(text);
+//        String phrase;
+//        if(words.size()>1) {
+//            Integer final_idx = words.size() - 2;
+//            Integer i = 0;
+//            while(i < final_idx) {
+//                phrase = words.get(i)+"_"+words.get(i+1)+"_"+words.get(i+2); // first check three words phrase
+//                if(phraseList.contains(phrase)){
+//                    unitList.add((phrase));
+//                    i += 3; //skip all following words contained in phrase
+//                }
+//                else{
+//                    phrase = words.get(i)+"_"+words.get(i+1);
+//                    if (phraseList.contains(phrase)){
+//                        unitList.add(phrase);
+//                        i += 2;
+//                    }
+//                    else{
+//                        unitList.add(words.get(i));
+//                        i++;
+//                    }
+//                }
+//            }
+//            while(i<final_idx+1) { // check the last few words.
+//                phrase = words.get(i) + "_" + words.get(i + 1);
+//                if (phraseList.contains(phrase)) {
+//                    unitList.add(phrase);
+//                    i += 2;
+//                } else { // if not phrase, add as two separate words
+//                    unitList.add(words.get(i));
+//                    i++;
+//                }
+//            }
+//            while(i<final_idx+2){
+//                unitList.add(words.get(i));
+//                i++;
+//            }
+//
+//        }
+//        else{
+//            unitList.add(words.get(0));
+//        }
+//        return  unitList;
+//    }
 
 
     /**
-     * Query Parser.
-     * @param text
-     * @return
+     * Scan the input string with different window size to detect all the phrases.
+     * @param text The input string to be scanned.
+     * @return the list of detected phrases and words.
      * @throws JWNLException
      * @throws IOException
      */
-    // TODO: What the thisWords and nextWords?
     public LinkedList<String> queryParser(String text) throws JWNLException, IOException{
         Integer windowSize = maxPhrase;
         LinkedList<String> unitList = new LinkedList<>();

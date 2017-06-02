@@ -173,10 +173,10 @@ public class TextExpansion {
 
 
     /**
-     *
-     * @param unit
-     * @param wordScore
-     * @param confPhrase
+     * Expand sub-phrases.
+     * @param unit The unit from which to expand the sub phrase.
+     * @param wordScore the score of word
+     * @param confPhrase the confident phrase.
      * @return
      */
     // TODO: what did it do?
@@ -214,9 +214,9 @@ public class TextExpansion {
 
 
     /**
-     *
-     * @param unitScore
-     * @return
+     * Expand the quary hierarchically using MeshTree.
+     * @param unitScore the ranked string of the unit score.
+     * @return the expanded hierarchy.
      * @throws FileNotFoundException
      * @throws JWNLException
      */
@@ -248,37 +248,10 @@ public class TextExpansion {
         //this.loadMap("src/main/data/SimilarityFile.txt");
         LinkedList<RankedString> expendedUnits = new LinkedList<>();
         List<RankedString> simList;
-        Double querylen = 0.0;
         for(String unit: tokenQuery) {
-            LinkedList<RankedString> tmpunits = new LinkedList<>();
             Double score = 1.0;
-            String[] winphrase = unit.split("_");
-            Integer winsize = winphrase.length-1;
-            Double sum_score = 0.0;
-//            Double next_conf = conf_phrase;
-//            while(win_size>1){
-//                Integer start_pos = 0; //                Integer end_pos = start_pos+win_size;
-//                while(end_pos<winphrase.length){
-//                    String[] subphrase = Arrays.copyOfRange(winphrase, start_pos, end_pos);
-//                    String sub_phrase = String.join("_",subphrase);
-//                    if(phraseList.contains(sub_phrase)){
-//                        Double w_score = 1.0 * next_conf;
-//                        tmpunits.add(new RankedString(sub_phrase, w_score));
-//                        sum_score += w_score;
-//                    }
-//                    start_pos++;
-//                    end_pos = start_pos+win_size;
-//                }
-//                win_size --;
-//                next_conf *= conf_phrase;
-//            }
-//            if(win_size == 1){
-//                for (String w : winphrase) { // only do this for origin units
-//                    Double w_score = 1.0 * next_conf;
-//                    sum_score +=w_score;
-//                    tmpunits.add(new RankedString(w, w_score));
-//                }
-//            }
+            String[] windowPhrase = unit.split("_");
+
             //expand on synonyms
             HashSet<String> synsList = new HashSet<>();
             Integer synId = synsId.get(unit);
@@ -290,29 +263,22 @@ public class TextExpansion {
             } else {
                 expendedUnits.add(new RankedString(unit, score));
             }
-            if (winphrase.length > 1) {
-                tmpunits = subPhraseExpansion(unit, score, conf_phrase1);
-                for (RankedString subUnit : tmpunits) {
-                    //subUnit.setRank(subUnit.getRank() * 1.0 * sum_sub_conf / sum_score);
-                    //subUnit.setRank(subUnit.getRank());
-                    expendedUnits.add(subUnit);
-                }
-                tmpunits = new LinkedList<>();
+            if (windowPhrase.length > 1) {
+                LinkedList<RankedString> tmpUnits = subPhraseExpansion(unit, score, conf_phrase1);
+                expendedUnits.addAll(tmpUnits);
             }
+
             //expand based on Hyper and Hyponyms
-            tmpunits = hierarchyExpansion(new RankedString(unit,1.0));
-            for (RankedString subUnit : tmpunits) {
-                expendedUnits.add(subUnit);
-            }
+            LinkedList<RankedString> tmpUnits = hierarchyExpansion(new RankedString(unit,1.0));
+            expendedUnits.addAll(tmpUnits);
+
             //expand based on Similar words
             simList = similarity.get(unit); // only do this for origin tokens
             if(simList!=null) {
                 for (Iterator<RankedString> iter = simList.listIterator(); iter.hasNext(); ) {
                     // check if is already included in synonyms, if so, delete from similar words list
-                    RankedString a = iter.next();
-                    if (synsList.contains(a.getString())) {
+                    if (synsList.contains(iter.next().getString()))
                         iter.remove();
-                    }
                 }
             }
             Integer sim_num = 0;
@@ -324,12 +290,12 @@ public class TextExpansion {
                     }
                     if(simUnit.getRank()> MIN_SIM) {
                         //simUnit.setRank(simUnit.getRank() * conf_sim * score);
-                        tmpunits.add(simUnit);
+                        tmpUnits.add(simUnit);
                         sim_num +=1;
                         sum_weight += simUnit.getRank();
                     }
                 }
-                for (RankedString simUnit:tmpunits){
+                for (RankedString simUnit: tmpUnits){
                     simUnit.setRank(simUnit.getRank() * 1.0 * sum_sim_conf / sum_weight);
                     expendedUnits.add(simUnit);
                 }
@@ -337,11 +303,14 @@ public class TextExpansion {
         }
         return expendedUnits;
     }
-//    public LinkedList<RankedString> synExpansion(LinkedList<RankedString> tmpUnits){
-//        LinkedList<RankedString> expendedUnits = new LinkedList<>();
-//
-//    }
 
+    /**
+     * Do expansion of documents
+     * @param textrank the list of strings in a document.
+     * @return  the expanded units.
+     * @throws JWNLException
+     * @throws IOException
+     */
     public LinkedList<RankedString> docExpansion (LinkedList<RankedString> textrank) throws JWNLException, IOException{
         //this.loadMap("src/main/data/SimilarityFile.txt");
         // input format: [<unit1,score1>,<unit2,score2>...]
@@ -354,32 +323,6 @@ public class TextExpansion {
             String[] winphrase = unit.split("_");
             Integer win_size = winphrase.length - 1;
 
-//            Double sum_score = 0.0;
-//            Double next_conf = conf_phrase;
-//            while (win_size > 1) {
-//                Integer start_pos = 0;
-//                Integer end_pos = start_pos + win_size;
-//                while (end_pos < winphrase.length) {
-//                    String[] subphrase = Arrays.copyOfRange(winphrase, start_pos, end_pos);
-//                    String sub_phrase = String.join("_", subphrase);
-//                    if (phraseList.contains(sub_phrase)) {
-//                        Double w_score = score * next_conf;
-//                        tmpunits.add(new RankedString(sub_phrase, w_score));
-//                        sum_score += w_score;
-//                    }
-//                    start_pos++;
-//                    end_pos = start_pos + win_size;
-//                }
-//                win_size--;
-//                next_conf *= conf_phrase;
-//            }
-//            if (win_size == 1) {
-//                for (String w : winphrase) { // only do this for origin units
-//                    Double w_score = score * next_conf;
-//                    sum_score += w_score;
-//                    tmpunits.add(new RankedString(w, w_score));
-//                }
-//            }
             HashSet<String> synsList = new HashSet<>();
             Integer synId = synsId.get(unit);
             if(synId!=null){ // if it has synonyms, add both the synonyms into the expended list. If not, only add the original unit.
@@ -436,47 +379,6 @@ public class TextExpansion {
         }
         return expendedUnits;
     }
-
-//    public List<String> docParser (String text) throws JWNLException,FileNotFoundException{
-//        //parse document input is text, output is possibile keyphrase
-//        Tokenizer token = new Tokenizer();
-//        List<String> units = new LinkedList<String>();
-//        if( text!=null){
-//            LinkedList<String> words = token.tokenize(text);
-//            // implement textrank here;
-//            Integer order = 0;
-//            if (words.size()>=2) {
-//                for (Integer i = 0; i < words.size()-1; i++) {
-//                    String phrase = words.get(i) + "_" + words.get(i + 1);
-//                    if (phraseList.contains(phrase)) {
-//                        units.add(order,phrase);
-//                        order++;
-//                        i++; // don't consider another possible phrases.
-//                    }
-//                    else{
-//                        units.add(order,words.get(i));
-//                        order++;
-//                    }
-//                }
-//            }
-//            else{
-//                units.add(0,words.get(0));
-//            }
-//        }
-//        return units;
-//    }
-
-//    public List<RankedString> queryExpansion(String query) throws JWNLException, FileNotFoundException {
-//        TextExpansion te = new TextExpansion();
-//        List<RankedString> expQuery = new ArrayList<RankedString>();
-//        List<String> words = te.docParser(query);
-//        for(String word:words) {
-//            List<RankedString>  simUnits = te.Expansion(word);
-//            expQuery.add(new RankedString("Hello", 1.0));
-//            expQuery.addAll(simUnits);
-//        }
-//        return expQuery;
-//    }
 
     public static void main(String[] args) throws IOException, JWNLException, ClassNotFoundException{
         TextExpansion TE = new TextExpansion();

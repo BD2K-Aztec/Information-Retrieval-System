@@ -20,7 +20,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by Xinxin on 10/9/2016.
+ * Class of Tag Expansion
+ * @author Xinxin Huang "xinxinh@gmail.com" on 10/9/2016.
  */
 public class TagExpansion {
     private final static HashSet<String> vocab = new HashSet<>();
@@ -28,6 +29,12 @@ public class TagExpansion {
     PrintWriter pw = new PrintWriter(new FileOutputStream("src/main/data/superised_terms.txt"));
     Tokenizer tk;
 
+    /**
+     * Load vocabulary
+     * @param infile the input file
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public void loadVoc(String infile) throws FileNotFoundException, IOException {
         BufferedReader reader = new BufferedReader(new FileReader(infile));
         String line;
@@ -36,12 +43,24 @@ public class TagExpansion {
         }
         reader.close();
     }
-    public TagExpansion() throws JWNLException, FileNotFoundException, IOException{
+
+    /**
+     * Constructor. Initialize tk and load all the vocabulary
+     * @throws JWNLException
+     * @throws IOException
+     */
+    public TagExpansion() throws JWNLException, IOException{
         this.tk = new Tokenizer();
         this.loadVoc("src/main/data/Vocabulary_new.txt");
         //this.loadVoc("src/main/data/Vocabulary.txt");
     }
 
+    /**
+     * Split the tag.
+     * @param tag the tag to be splitted.
+     * @return the string of the final tags.
+     * @throws IOException
+     */
     public String tagSplit(String tag) throws IOException{
         String final_tag;
         String pattern = "([a-z])([A-Z])([a-z])";
@@ -88,6 +107,13 @@ public class TagExpansion {
         return final_tag;
 
     }
+
+    /**
+     * Do the tagExpansion. For array of strings to linkedlist of ranked strings.
+     * @param tags the tags to expand
+     * @return the expanded tags.
+     * @throws IOException
+     */
     public LinkedList<RankedString> tagExpansion(ArrayList<String> tags) throws IOException{
         LinkedList<RankedString> expandedtags = new LinkedList<>();
         Integer count = 0;
@@ -114,6 +140,7 @@ public class TagExpansion {
 
         return expandedtags;
     }
+
     public static void main(String[] args) throws Exception{
         TagExpansion TE = new TagExpansion();
         PrintWriter pw = new PrintWriter(new FileOutputStream("src/main/data/exptags.txt"));

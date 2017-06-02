@@ -1,19 +1,35 @@
 package edu.ucla.cs.scai.aztec.textexpansion;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+
 import edu.ucla.cs.scai.aztec.keyphrase.Tokenizer;
 import net.sf.extjwnl.JWNLException;
 
 import java.io.*;
 import java.util.*;
+
 /**
- * Created by Xinxin on 9/23/2016.
+ * the class to filter the synonyms
+ *
+ * @author Xinxin Huang "xinxinh@gmail.com" 9/23/2016.
  */
 public class SynonymFilter {
     private final static HashSet<String> vocab = new HashSet<>();
     private Tokenizer tk;
+
+    /**
+     * Constructor.
+     * @throws FileNotFoundException
+     * @throws JWNLException
+     */
     public SynonymFilter() throws FileNotFoundException, JWNLException{
         tk = new Tokenizer();
     }
+
+    /**
+     * Load Vocabulary.
+     * @param infile the input file from which to load vocabulary
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public void loadVoc(String infile) throws FileNotFoundException, IOException{
         BufferedReader reader = new BufferedReader(new FileReader(infile));
         String line;
@@ -22,11 +38,25 @@ public class SynonymFilter {
         }
         reader.close();
     }
-    public ArrayList<String> removeDuplication (ArrayList<String> synlist){
+
+    /**
+     * Remove all the duplicate words from the vocabulary
+     * @param synList  the list of all the synonyms.
+     * @return the list of words that removes the synonyms.
+     */
+    public ArrayList<String> removeDuplication (ArrayList<String> synList){
         ArrayList<String> uniquelist = new ArrayList<>();
 
         return uniquelist;
     }
+
+    /**
+     * First synonym filter.
+     * @param infile the input file.
+     * @param outfile the output file.
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public void synFilter1(String infile, String outfile) throws FileNotFoundException, IOException{
         // if one word of the list is in the vocabulary , then the entire list is added into the synfile;
         // May include words that are not included in the vocabulary
@@ -66,6 +96,15 @@ public class SynonymFilter {
         System.out.println(success);
         writer.close();
     }
+
+
+    /**
+     * Second synonym filter.
+     * @param infile the input file.
+     * @param outfile the output file.
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public void synFilter2(String infile, String outfile) throws FileNotFoundException, IOException{
         // Build a synonym file based on our vocabulary. All the words in the synonym file is from our vocabulary
         PrintWriter writer = new PrintWriter(new FileOutputStream(outfile));
@@ -106,6 +145,13 @@ public class SynonymFilter {
         reader.close();
         writer.close();
     }
+
+    /**
+     * Merging the duplicate synonyms
+     * @param infile the input file
+     * @param outfile the output file
+     * @throws IOException
+     */
     public void MergeDupicationInRow(String infile,String outfile) throws IOException{ // simple merge, keep the first one of each line as the key
         PrintWriter writer = new PrintWriter(new FileOutputStream(outfile));
         BufferedReader reader = new BufferedReader(new FileReader(infile));
