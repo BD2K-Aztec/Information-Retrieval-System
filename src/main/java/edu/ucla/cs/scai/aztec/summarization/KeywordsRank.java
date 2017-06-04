@@ -10,7 +10,6 @@ import edu.stanford.nlp.util.CollectionFactory;
 import edu.stanford.nlp.util.SystemUtils;
 import edu.stanford.nlp.util.TypesafeMap;
 import edu.ucla.cs.scai.aztec.similarity.Tokenizer;
-import edu.ucla.cs.scai.aztec.similarity.WeightedAbs;
 import edu.ucla.cs.scai.aztec.textexpansion.TextParser;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,8 +30,13 @@ public class KeywordsRank {
     double[] rank;
     Integer[] ordered;
 
-    /*build dependency graph based on the grammar structure
-    calculate min distance between each pair of node*/
+
+    /**
+     * build dependency graph based on the grammar structure
+     * calculate min distance between each pair of node
+     *
+     * @param input the input string to construct the dependency graph
+     */
     public void dependencyGraph(List<String> input) throws JWNLException, FileNotFoundException {
         LexicalizedParser lp = LexicalizedParser.loadModel();
         TreebankLanguagePack tlp = lp.getOp().langpack();
@@ -105,7 +109,14 @@ public class KeywordsRank {
 
     }
 
-    public KeywordsRank(String text, int... windowSizes) throws JWNLException, FileNotFoundException, IOException {
+    /**
+     * Constructor
+     * @param text the text to the rank
+     * @param windowSizes the size of the window
+     * @throws JWNLException
+     * @throws IOException
+     */
+    public KeywordsRank(String text, int... windowSizes) throws JWNLException, IOException {
         //Tokenizer tokenizer = new Tokenizer();
         TextParser TP = new TextParser();
         //LinkedList<String> tokens = tokenizer.tokenize(text);
@@ -201,6 +212,10 @@ public class KeywordsRank {
 
     }
 
+    /**
+     * find the top ranked keywords
+     * @return the top ranked keywords
+     */
     public List<RankedString> topRankedKeywords() {
         LinkedList<RankedString> res = new LinkedList<>();
         double minRank = (rank[ordered[0]]-rank[ordered[ordered.length-1]]) * 0.2+rank[ordered[ordered.length-1]];// change from 0.9 to 0.6
@@ -212,10 +227,17 @@ public class KeywordsRank {
         return res;
     }
 
+    /**
+     * The class of Rank comparator
+     */
     class RankComparator implements Comparator<Integer> {
 
         double[] rank;
 
+        /**
+         * Constructor.
+         * @param rank set the rank
+         */
         public RankComparator(double[] rank) {
             this.rank = rank;
         }

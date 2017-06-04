@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import net.sf.extjwnl.JWNLException;
 
 /**
+ * The class of keyword.
  *
  * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
  */
@@ -24,12 +25,25 @@ public class KeywordsBuilder {
 
     static final double log2 = Math.log(2);
 
+    /**
+     * Constructor
+     * @throws JWNLException
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public KeywordsBuilder() throws JWNLException, FileNotFoundException, IOException {
         textparser = new TextParser();
     }
 
+    /**
+     * keywords builder.
+     * @param entries the entries from which we want to build keywords
+     * @param outputPath the path of output files
+     * @return the hashmap of string and list of ranked string
+     * @throws JWNLException
+     * @throws IOException
+     */
     public HashMap<String, LinkedList<RankedString>> buildKeywords(Collection<AztecEntry> entries, String outputPath) throws JWNLException,IOException {
-
         HashMap<String, LinkedList<RankedString>> res = new HashMap<>();
         TagExpansion TE = new TagExpansion();
         for (AztecEntry entry : entries) {
@@ -95,7 +109,7 @@ public class KeywordsBuilder {
         return res;
     }
 
-    public HashMap<String, List<RankedString>> buildKeywordsAbstract(Collection<AbsEntry> entries, String outputPath) throws IOException {
+    private HashMap<String, List<RankedString>> buildKeywordsAbstract(Collection<AbsEntry> entries, String outputPath) throws IOException {
         // The one I am currently using.
         // input contains all the sbatracts and description
 

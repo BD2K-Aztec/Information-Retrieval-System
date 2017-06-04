@@ -1,6 +1,7 @@
 package edu.ucla.cs.scai.aztec.summarization;
 
 /**
+ * the weighted edge graph class
  *
  * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
  */
@@ -11,12 +12,22 @@ public class WeightedEdgeGraph {
 
     int n; // number of nodes
 
+    /**
+     * Constructor class
+      * @param n number of nodes
+     */
     public WeightedEdgeGraph(int n) {
         this.n = n;
         weights = new double[n][n];
         outgoingWeights = new double[n];
     }
 
+    /**
+     * Set the weight of the edges
+     * @param i edge from node
+     * @param j edge to node
+     * @param w the weight of the edge
+     */
     public void setWeight(int i, int j, double w) {
         double diff = w - weights[i][j];
         outgoingWeights[i] += diff; // to calculate the total weight give by this node
@@ -25,12 +36,24 @@ public class WeightedEdgeGraph {
         weights[j][i] = w;
     }
 
+    /**
+     * Add a weight to an existing one
+     * @param i edge from node
+     * @param j edge to node
+     * @param w the weight to be added
+     */
     public void addWeight(int i, int j, double w) {
         outgoingWeights[i] += w;
         outgoingWeights[j] += w;
         weights[i][j] += w;
         weights[j][i] += w;
     }
+
+    /**
+     * Compute the shortest distance of each two nodes
+     *
+     * @return a double distance showing the distances between each two nodes
+     */
     public double[][] computeShortestDis() {
         double[][] dis = new double[n][n];
         // initialization
@@ -61,6 +84,13 @@ public class WeightedEdgeGraph {
 
     }
 
+    /**
+     * Compute the rank of any two nodes
+     * @param d the scale to initialize adjustedWeights
+     * @param est the initialization of res
+     * @param eps the small number to verify the converge
+     * @return the node ranks
+     */
     public double[] computeNodeRank(double d, double est, double eps) {
         double[][] adjustedWeights = new double[n][n];
         for (int i = 0; i < n; i++) {

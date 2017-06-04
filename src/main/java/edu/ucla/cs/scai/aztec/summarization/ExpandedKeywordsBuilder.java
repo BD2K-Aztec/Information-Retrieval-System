@@ -2,8 +2,6 @@ package edu.ucla.cs.scai.aztec.summarization;
 
 import edu.ucla.cs.scai.aztec.AztecEntry;
 import edu.ucla.cs.scai.aztec.AbsEntry;
-import edu.ucla.cs.scai.aztec.AztecEntryProviderFromJsonFile;
-import edu.ucla.cs.scai.aztec.similarity.AbsCachedData;
 import edu.ucla.cs.scai.aztec.textexpansion.TextExpansion;
 import net.sf.extjwnl.JWNLException;
 
@@ -13,10 +11,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Created by Xinxin on 8/5/2016.
+ * ExpandedKeywordsBuilder Class
+ * @author Xinxin Huang "xinxinh@gmail.com" 8/5/2016.
  */
 public class ExpandedKeywordsBuilder {
 
+    /**
+     * build keywords expansion. From AztecEntry entries to output to files.
+     * @param entries the entries from which to construct keywords
+     * @param outputPath the path of the output files
+     * @return the expanded keywords list
+     * @throws JWNLException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public HashMap<String, List<RankedString>> buildExpKeywords(Collection<AztecEntry> entries, String outputPath) throws JWNLException, IOException, ClassNotFoundException {
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream("src/main/data/keywords.data"));
         HashMap<String, LinkedList<RankedString>> keywords = (HashMap<String, LinkedList<RankedString>>) ois.readObject();
@@ -40,7 +48,7 @@ public class ExpandedKeywordsBuilder {
         }
         return expendedKeywords;
     }
-    public HashMap<String, List<RankedString>> buildExpKeywordsAbstract(Collection<AbsEntry> entries, String outputPath) throws JWNLException, IOException, ClassNotFoundException {
+    private HashMap<String, List<RankedString>> buildExpKeywordsAbstract(Collection<AbsEntry> entries, String outputPath) throws JWNLException, IOException, ClassNotFoundException {
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream("src/main/data/abskeywords.data"));
         HashMap<String, LinkedList<RankedString>> keywords = (HashMap<String, LinkedList<RankedString>>) ois.readObject();
         HashMap<String, List<RankedString>> expendedKeywords = new HashMap<>();

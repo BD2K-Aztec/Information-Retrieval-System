@@ -12,11 +12,11 @@ import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import org.apache.xerces.util.SynchronizedSymbolTable;
 
 /**
+ * The class of TextRank
  *
  * @author Giuseppe M. Mazzeo <mazzeo@cs.ucla.edu>
  */
 public class TextRank {
-
     WeightedEdgeGraph g;
     HashMap<Integer, String> sentences = new HashMap<>();
     HashMap<Integer, HashSet<String>> sets = new HashMap<>();
@@ -50,6 +50,12 @@ public class TextRank {
 
     }
 
+    /**
+     * Constructor.
+     * @param text the text to do TextRank on.
+     * @throws JWNLException
+     * @throws FileNotFoundException
+     */
     public TextRank(String text) throws JWNLException, FileNotFoundException {
         Tokenizer tokenizer = new Tokenizer();
         LinkedList<int[]> boundaries = new LinkedList<>();
@@ -82,6 +88,10 @@ public class TextRank {
         Arrays.sort(ordered, new RankComparator(rank));
     }
 
+    /**
+     * Counstructor.
+     * @param sentences list of sentences to do text rank on.
+     */
     public TextRank(List<String> sentences) {
         int n = 0;
         for (String s : sentences) {
@@ -109,8 +119,14 @@ public class TextRank {
         }
         Arrays.sort(ordered, new RankComparator(rank));
     }
-    
-    //returns the sentences with a rank at least equal to 0.9 times the maximum rank
+
+    /**
+     * returns the sentences with a rank at least equal to 0.9 times the maximum rank
+     *
+     * @return the result of the top sentences.
+     */
+
+
     public List<String> topSentences() {
         ArrayList<Integer> ids=new ArrayList<>();
         double minRank=rank[ordered[0]]*0.9;
@@ -126,9 +142,14 @@ public class TextRank {
         }
         return res;
     }
-    
 
-    //returns the sentences with the top-k rank, in the order in which they appear in the text
+
+    /**
+     * returns the sentences with the top-k rank, in the order in which they appear in the text
+     *
+     * @param k number of top sentences to return
+     * @return the top k sentences
+     */
     public List<String> topSentences(Integer k) {
         if (k==null) {
             return topSentences();
@@ -148,6 +169,10 @@ public class TextRank {
         return res;
     }
 
+
+    /**
+     * The class of Rank Comparator
+     */
     class RankComparator implements Comparator<Integer> {
 
         double[] rank;
@@ -156,6 +181,12 @@ public class TextRank {
             this.rank = rank;
         }
 
+        /**
+         * Output the boolean variable of o1 comparing to o2
+         * @param o1 the ID of the 1st object
+         * @param o2 the ID of the 2nd object
+         * @return the comparison of the ranks of object 1 and object 2
+         */
         @Override
         public int compare(Integer o1, Integer o2) {
             return Double.compare(rank[o2], rank[o1]);
